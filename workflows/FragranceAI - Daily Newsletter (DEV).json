@@ -1,0 +1,451 @@
+{
+  "name": "FragranceAI - Daily Newsletter (DEV)",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1472,
+        -160
+      ],
+      "id": "1be51932-695a-4870-a670-db52b5e80be2",
+      "name": "Telegram Trigger",
+      "webhookId": "ef3e645c-6ed0-4ef5-8a4d-d94da593f3a4",
+      "credentials": {
+        "telegramApi": {
+          "id": "npoADX0GCjwwlgGI",
+          "name": "FragranceAI_Test_Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://www.reddit.com/r/fragrance/hot.json?limit=5",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "FragranceAI/1.0"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1264,
+        -160
+      ],
+      "id": "7eb866f2-2b3d-4658-b5ae-1d7b1a884577",
+      "name": "Fetch Reddit Fragrance"
+    },
+    {
+      "parameters": {
+        "url": "https://newsapi.org/v2/everything?q=perfume+fragrance+trending&sortBy=publishedAt&pageSize=5&apiKey=5b8b0f49d9bf4602b64b7fdd7b5011a2",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1056,
+        -160
+      ],
+      "id": "2a0cdcc6-5fd8-40cf-b433-6c8cf18097cb",
+      "name": "Fetch Google News"
+    },
+    {
+      "parameters": {
+        "url": "https://api.unsplash.com/photos/random?query=perfume+luxury&client_id=GUFPkE_4YqBtQaHOriUs2m9bEapHBsPsmif7NvNprZQ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -848,
+        -160
+      ],
+      "id": "fad39587-d234-4b88-a632-a2aa04f6940b",
+      "name": "Fetch Fragrance Image"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get Reddit posts\nconst redditData = $('Fetch Reddit Fragrance').first().json;\nconst redditPosts = redditData.data.children.slice(0, 5).map(post => ({\n  title: post.data.title,\n  score: post.data.score,\n  comments: post.data.num_comments,\n  url: `https://reddit.com${post.data.permalink}`\n}));\n\n// Get News articles\nconst newsData = $('Fetch Google News').first().json;\nconst newsArticles = newsData.articles.slice(0, 5).map(article => ({\n  title: article.title,\n  source: article.source.name,\n  url: article.url,\n  image: article.urlToImage\n}));\n\n// Get Unsplash image\nconst imageData = $('Fetch Fragrance Image').first().json;\nconst heroImage = imageData.urls.regular;\n\n// Get current season\nconst month = new Date().getMonth();\nlet season = 'Winter';\nif (month >= 2 && month <= 4) season = 'Spring';\nelse if (month >= 5 && month <= 7) season = 'Summer';\nelse if (month >= 8 && month <= 10) season = 'Autumn';\n\n// Return merged data\nreturn [{\n  json: {\n    redditPosts,\n    newsArticles,\n    heroImage,\n    season,\n    date: new Date().toLocaleDateString('en-IN', { \n      weekday: 'long', \n      year: 'numeric', \n      month: 'long', \n      day: 'numeric',\n      timeZone: 'Asia/Kolkata'\n    })\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -640,
+        -160
+      ],
+      "id": "020dbe2a-4308-4f33-bb1c-e0a3451cec6c",
+      "name": "Merge All Data"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=Create today's FragranceAI newsletter with ALL data below:\n\n📅 Date: {{ $json.date }}\n🌡️ Season: {{ $json.season }}\n\n📱 REDDIT POSTS (include ALL):\n{{ JSON.stringify($json.redditPosts, null, 2) }}\n\n📰 NEWS ARTICLES (include ALL):\n{{ JSON.stringify($json.newsArticles, null, 2) }}\n\n🖼️ Hero Image: {{ $json.heroImage }}\n\nIMPORTANT: Include EVERY Reddit post and EVERY news article. Make it comprehensive and detailed. Use landscape hero image at full container width."
+            },
+            {
+              "role": "system",
+              "content": "=You are FragranceAI, an expert perfume curator. Create a comprehensive HTML email newsletter.\n\n**STRICT DESIGN RULES:**\n- Container: max-width 650px, centered, background #FFFFFF\n- Hero image: 100% width, max-height 250px, object-fit cover, border-radius 8px\n- Colors: Primary #8B4D6B (rose), Secondary #D4A574 (gold), Background #FDF8F5, Text #333333\n- All sections: background #FFFFFF, padding 20px, margin-bottom 20px, border-radius 10px, border: 1px solid #E8E0DC\n- Bullet points: margin-bottom 15px, line-height 1.8\n- Section headers: color #8B4D6B, font-size 20px, border-bottom 2px solid #D4A574, padding-bottom 10px\n\n**REQUIRED SECTIONS (in order):**\n\n1. **HEADER** - \"FragranceAI\" title + date + greeting message\n\n2. **HERO IMAGE** - Full width landscape banner (use provided URL)\n\n3. **🔥 TRENDING ON REDDIT** - List ALL provided Reddit posts with:\n   - Clickable title links\n   - Score in parentheses\n   - Brief context\n   - Spacing between items\n\n4. **📰 FRAGRANCE NEWS** - Display ALL news articles with:\n   - Small thumbnail (100px width) on left\n   - Title + source on right\n   - Horizontal card layout\n   - All articles included\n\n5. **🌸 SEASONAL PICKS** - 3 fragrance recommendations for current season:\n   - Fragrance name in bold\n   - Brand name\n   - 2-line description of scent profile\n   - Why it's perfect for the season\n\n6. **💡 FRAGRANCE TIP OF THE DAY** - One useful tip about wearing/storing/choosing fragrances\n\n7. **FOOTER** - \n   - \"With love, Team FragranceAI 💜\"\n   - Social media links as TEXT only (no images): \"Follow us: Facebook | Twitter | Instagram\" with # as href\n   - Unsubscribe link\n   - Copyright 2025\n\n**OUTPUT:** Pure HTML with inline CSS only. No markdown. No code blocks. No explanation."
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        -432,
+        -160
+      ],
+      "id": "e0c3a944-f017-4894-aff4-a9010dcda4fe",
+      "name": "Generate Newsletter AI",
+      "credentials": {
+        "openAiApi": {
+          "id": "bsk3QAVRI09420TL",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $('Generate Newsletter AI').first().json;\n\nlet aiResponse = '';\n\nif (input.output && input.output[0] && input.output[0].content) {\n  aiResponse = input.output[0].content[0].text;\n} else if (input.message && input.message.content) {\n  aiResponse = input.message.content;\n} else if (input.text) {\n  aiResponse = input.text;\n} else {\n  aiResponse = JSON.stringify(input);\n}\n\n// Extract HTML - handle both with and without code blocks\nlet html = aiResponse.trim();\n\nif (html.includes('```html')) {\n  html = html.split('```html')[1].split('```')[0].trim();\n} else if (html.includes('```')) {\n  html = html.split('```')[1].split('```')[0].trim();\n}\n\n// Ensure it starts with DOCTYPE or html tag\nif (!html.startsWith('<!DOCTYPE') && !html.startsWith('<html')) {\n  const htmlStart = html.indexOf('<!DOCTYPE');\n  if (htmlStart === -1) {\n    const altStart = html.indexOf('<html');\n    if (altStart !== -1) html = html.substring(altStart);\n  } else {\n    html = html.substring(htmlStart);\n  }\n}\n\nreturn [{\n  json: {\n    newsletterHtml: html\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -80,
+        -160
+      ],
+      "id": "e4cffa9b-98e1-47c2-906b-0f57c9d7fdf3",
+      "name": "Extract HTML"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1CZE14HAyPif1zMFJcUyyJPdJKEsNUmHMoERpfiLnmys",
+          "mode": "list",
+          "cachedResultName": "FragranceAI_Subscribers",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CZE14HAyPif1zMFJcUyyJPdJKEsNUmHMoERpfiLnmys/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Subscribers",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CZE14HAyPif1zMFJcUyyJPdJKEsNUmHMoERpfiLnmys/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        128,
+        -160
+      ],
+      "id": "68d12da8-3562-49fc-9264-e09843c6da0b",
+      "name": "Get All Subscribers",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "NnlXvNVkA7YuRqPM",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.email }}",
+        "subject": "=🌸 FragranceAI Daily Newsletter - {{ $('Merge All Data').first().json.date }}",
+        "message": "={{ $('Extract HTML').first().json.newsletterHtml }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        336,
+        -160
+      ],
+      "id": "bc05da6f-ef3e-4a5c-a943-c1bc8c280a1f",
+      "name": "Send Newsletter Email",
+      "webhookId": "9781e6b5-a367-4b2a-a273-1c07e256c94a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "M6ggjhIDaLpnYKnz",
+          "name": "Gmail Account krishnamscit17"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1CZE14HAyPif1zMFJcUyyJPdJKEsNUmHMoERpfiLnmys",
+          "mode": "list",
+          "cachedResultName": "FragranceAI_Subscribers",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CZE14HAyPif1zMFJcUyyJPdJKEsNUmHMoERpfiLnmys/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1619769331,
+          "mode": "list",
+          "cachedResultName": "Newsletter_Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CZE14HAyPif1zMFJcUyyJPdJKEsNUmHMoERpfiLnmys/edit#gid=1619769331"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "date": "={{ $('Merge All Data').first().json.date }}",
+            "subject": "FragranceAI Daily Newsletter",
+            "email_count": "={{ $('Get All Subscribers').all().length }}",
+            "status": "sent"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "date",
+              "displayName": "date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "subject",
+              "displayName": "subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email_count",
+              "displayName": "email_count",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        784,
+        -160
+      ],
+      "id": "ba4c7b27-adb7-496d-913e-995a59c815a0",
+      "name": "Log Newsletter",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "NnlXvNVkA7YuRqPM",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        544,
+        -160
+      ],
+      "id": "77ec9c1a-b19f-4fff-a049-140296547002",
+      "name": "Aggregate Emails Sent"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1472,
+        32
+      ],
+      "id": "ac707d49-a885-4798-9971-32d21d00ced6",
+      "name": "Daily 9AM Trigger"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Fetch Reddit Fragrance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Reddit Fragrance": {
+      "main": [
+        [
+          {
+            "node": "Fetch Google News",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Google News": {
+      "main": [
+        [
+          {
+            "node": "Fetch Fragrance Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Fragrance Image": {
+      "main": [
+        [
+          {
+            "node": "Merge All Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge All Data": {
+      "main": [
+        [
+          {
+            "node": "Generate Newsletter AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Newsletter AI": {
+      "main": [
+        [
+          {
+            "node": "Extract HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract HTML": {
+      "main": [
+        [
+          {
+            "node": "Get All Subscribers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get All Subscribers": {
+      "main": [
+        [
+          {
+            "node": "Send Newsletter Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Newsletter Email": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Emails Sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Emails Sent": {
+      "main": [
+        [
+          {
+            "node": "Log Newsletter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Daily 9AM Trigger": {
+      "main": [
+        [
+          {
+            "node": "Fetch Reddit Fragrance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "7bb0d34e-c1b0-414c-8303-109d85c19bca",
+  "meta": {
+    "instanceId": "f9907f7735195927389e6653395cb98a2dfc5ecbdd5641aa84ccd8bc13f9a21f"
+  },
+  "id": "JvILUuQEBlyqrHZs",
+  "tags": []
+}

@@ -1,0 +1,360 @@
+{
+  "name": "FragranceAI - Subscription Webhook (PROD)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "fragrance-subscribe",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -816,
+        -32
+      ],
+      "id": "fd664d35-854a-49c9-8adc-1edf312c9375",
+      "name": "Subscription Webhook",
+      "webhookId": "63fac534-d95c-49f0-ba02-92cd9121676c"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json.body;\n\nconst now = new Date().toLocaleString('en-IN', { \n  timeZone: 'Asia/Kolkata',\n  day: '2-digit',\n  month: '2-digit', \n  year: 'numeric',\n  hour: '2-digit',\n  minute: '2-digit',\n  hour12: true\n});\n\nreturn [{\n  json: {\n    email: input.email || '',\n    name: input.name || 'Subscriber',\n    subscribed_date: now,\n    status: 'active',\n    source: 'Lovable_Website'\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -608,
+        -32
+      ],
+      "id": "8b1c64d6-6307-40fd-84f7-0318089a7418",
+      "name": "Parse Webhook Data"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1CZE14HAyPif1zMFJcUyyJPdJKEsNUmHMoERpfiLnmys",
+          "mode": "list",
+          "cachedResultName": "FragranceAI_Subscribers",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CZE14HAyPif1zMFJcUyyJPdJKEsNUmHMoERpfiLnmys/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Subscribers",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CZE14HAyPif1zMFJcUyyJPdJKEsNUmHMoERpfiLnmys/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -400,
+        -32
+      ],
+      "id": "ce2a843c-7880-4fa2-9f82-763d0023587d",
+      "name": "Get All Subscribers",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "NnlXvNVkA7YuRqPM",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1CZE14HAyPif1zMFJcUyyJPdJKEsNUmHMoERpfiLnmys",
+          "mode": "list",
+          "cachedResultName": "FragranceAI_Subscribers",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CZE14HAyPif1zMFJcUyyJPdJKEsNUmHMoERpfiLnmys/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Subscribers",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CZE14HAyPif1zMFJcUyyJPdJKEsNUmHMoERpfiLnmys/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "email": "={{ $json.email }}",
+            "name": "={{ $json.name }}",
+            "subscribed_date": "={{ $json.subscribed_date }}",
+            "status": "={{ $json.status }}",
+            "source": "={{ $json.source }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "subscribed_date",
+              "displayName": "subscribed_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "source",
+              "displayName": "source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        304,
+        -144
+      ],
+      "id": "0d78e37b-1e0f-44ad-8f00-2faac4ae5179",
+      "name": "Save Subscriber",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "NnlXvNVkA7YuRqPM",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.email }}",
+        "subject": "=🎉 Welcome to FragranceAI, {{ $json.name }}!",
+        "message": "=<!DOCTYPE html> <html> <head>   <meta charset=\"UTF-8\"> </head> <body style=\"margin: 0; padding: 0; font-family: Georgia, serif; background-color: #faf8f5;\">   <div style=\"max-width: 600px; margin: 0 auto; background: linear-gradient(135deg, #f5f0ff 0%, #fff9e6 100%); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1);\">          <!-- Header -->     <div style=\"background: linear-gradient(90deg, #d4af37 0%, #9b7bb8 100%); padding: 30px; text-align: center;\">       <h1 style=\"color: white; margin: 0; font-size: 32px; letter-spacing: 2px;\">✨ FragranceAI ✨</h1>       <p style=\"color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 14px;\">Your Daily Luxury Fragrance Newsletter</p>     </div>          <!-- Content -->     <div style=\"padding: 40px 30px; color: #4a4a4a;\">       <h2 style=\"color: #2d2d2d; margin-top: 0;\">Welcome, {{ $json.name }}! 🌸</h2>              <p style=\"font-size: 16px; line-height: 1.8;\">         Thank you for joining our exclusive community of fragrance enthusiasts. You've made an excellent choice!       </p>              <p style=\"font-size: 16px; line-height: 1.8;\">         Starting <span style=\"color: #d4af37; font-weight: bold;\">tomorrow</span>, you'll receive our daily newsletter featuring:       </p>              <div style=\"background: white; border-left: 4px solid #d4af37; padding: 20px; margin: 25px 0; border-radius: 0 8px 8px 0;\">         <p style=\"margin: 0 0 12px 0;\">🌿 <strong>Trending Fragrances</strong> — What's hot in the perfume world</p>         <p style=\"margin: 0 0 12px 0;\">📊 <strong>Community Insights</strong> — Curated from Reddit & social media</p>         <p style=\"margin: 0 0 12px 0;\">💎 <strong>Seasonal Picks</strong> — Perfect scents for the current season</p>         <p style=\"margin: 0;\">🎯 <strong>AI Recommendations</strong> — Personalized fragrance tips</p>       </div>              <p style=\"font-size: 16px; line-height: 1.8;\">         Get ready to discover your next signature scent!       </p>              <p style=\"font-size: 16px; line-height: 1.8; margin-bottom: 0;\">         With love,<br>         <span style=\"color: #9b7bb8; font-weight: bold;\">The FragranceAI Team</span>       </p>     </div>          <!-- Footer -->     <div style=\"background: #2d2d2d; color: #999; padding: 25px; text-align: center;\">       <p style=\"margin: 0 0 10px 0; font-size: 12px;\">FragranceAI © 2025 | Crafted with 💜</p>       <p style=\"margin: 0; font-size: 11px;\">         <a href=\"#\" style=\"color: #d4af37; text-decoration: none;\">Unsubscribe</a> |          <a href=\"#\" style=\"color: #d4af37; text-decoration: none;\">Preferences</a>       </p>     </div>        </div> </body> </html>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        512,
+        -144
+      ],
+      "id": "55704981-b1cd-4f2f-b53e-9ac0601ff8dd",
+      "name": "Send Welcome Email",
+      "webhookId": "eff607b7-4903-4b23-b91d-0d29c512b80d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "M6ggjhIDaLpnYKnz",
+          "name": "Gmail Account krishnamscit17"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "fd39d416-47be-49d0-a31b-0eb75112fbd4",
+              "leftValue": "={{ $json.isNewUser }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        64,
+        -32
+      ],
+      "id": "078dcb6d-374c-40ee-8dd5-23bbb4604a62",
+      "name": "Is New Subscriber?"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the new subscriber email from Parse node\nconst newEmail = $('Parse Webhook Data').first().json.email.toLowerCase();\n\n// Get all existing subscribers\nconst allSubscribers = $('Get All Subscribers').all();\n\n// Check if email already exists\nconst emailExists = allSubscribers.some(item => \n  item.json.email && item.json.email.toLowerCase() === newEmail\n);\n\n// Return result\nreturn [{\n  json: {\n    ...$('Parse Webhook Data').first().json,\n    isNewUser: !emailExists\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -192,
+        -32
+      ],
+      "id": "69fc66e2-d8da-4b5a-99d3-5f79d27845fc",
+      "name": "Check If Email Exists1"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": true,\n  \"message\": \"Welcome to FragranceAI! Check your email.\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        720,
+        -144
+      ],
+      "id": "7ed01586-194a-4017-9f97-56492db5415d",
+      "name": "Respond Success"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": false,\n  \"message\": \"You're already subscribed!\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        272,
+        64
+      ],
+      "id": "d5088923-5109-4cba-a893-ba3ed0171478",
+      "name": "Respond Already Exists"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Subscription Webhook": {
+      "main": [
+        [
+          {
+            "node": "Parse Webhook Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Webhook Data": {
+      "main": [
+        [
+          {
+            "node": "Get All Subscribers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Subscriber": {
+      "main": [
+        [
+          {
+            "node": "Send Welcome Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is New Subscriber?": {
+      "main": [
+        [
+          {
+            "node": "Save Subscriber",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Already Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check If Email Exists1": {
+      "main": [
+        [
+          {
+            "node": "Is New Subscriber?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get All Subscribers": {
+      "main": [
+        [
+          {
+            "node": "Check If Email Exists1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Welcome Email": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "ac561da8-95d2-479f-bca1-23a7a1c8fb88",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f9907f7735195927389e6653395cb98a2dfc5ecbdd5641aa84ccd8bc13f9a21f"
+  },
+  "id": "QtJjGlrC6gQWpDnl",
+  "tags": []
+}
